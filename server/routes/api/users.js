@@ -11,7 +11,7 @@ const router = express.Router();
 router.get('/:id', async (req,res) => {
     const users = await loadUserInformation();
 
-    res.send(await users.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
+   res.send(await users.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
 });
 
 router.post('/register', async (req,res) => {
@@ -22,7 +22,6 @@ router.post('/register', async (req,res) => {
     });
     res.status(201).send();
 })
-
 
 
 async function loadUserInformation() {
