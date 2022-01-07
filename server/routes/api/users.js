@@ -3,6 +3,10 @@ const mongodb = require('mongodb');
 const { createHash } = require('crypto');
 const { json } = require('body-parser');
 const { create } = require('domain');
+const fs =  require('fs')
+
+const multer = require('multer');
+const upload = multer({dest: 'uploads/'});
 
 function hash(string) {
   return createHash('sha256').update(string).digest('hex');
@@ -68,6 +72,34 @@ router.post('/updateUserInfo', async (req,res) => {
     const filter = { _id: new mongodb.ObjectId(req.body.id)  };
     const updateDoc = {
         $set: req.body.userObject,
+      };
+
+      const options = { upsert: true };
+
+    var result = await users.updateOne(filter, updateDoc, options);
+    res.send(createResponse(true,"User has been updated", result));
+    res.status(201).send();
+})
+
+router.post('/uploadUserPhoto', async (req,res) => {
+    let a =  req.body.imageBase64;
+    let m =  a.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+    let b =  Buffer.from(m[2],'base64');
+    fs.writeFile(`server/public/userImages/${req.body.fileName}`,b,function(err){
+      if(!err){
+        console.log("file is created");
+      } else {
+          console.log(err);
+      }
+    });
+
+    const users = await loadUserInformation();
+
+    const filter = { _id: new mongodb.ObjectId(req.body.id)  };
+    const updateDoc = {
+        $set: {
+            profilePicture: req.body.fileName
+        },
       };
 
       const options = { upsert: true };
