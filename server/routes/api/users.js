@@ -1,25 +1,79 @@
 const express = require('express');
 const mongodb = require('mongodb');
 const { createHash } = require('crypto');
+const { json } = require('body-parser');
+const { create } = require('domain');
 
 function hash(string) {
   return createHash('sha256').update(string).digest('hex');
+}
+
+function createResponse(hasSucceed,message = "",responseObject = null) {
+    return {
+        hasSucceed,
+        message,
+        responseObject
+    }
 }
 
 const router = express.Router();
 
 router.get('/:id', async (req,res) => {
     const users = await loadUserInformation();
-
-   res.send(await users.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
+    var result = await users.find({_id: new mongodb.ObjectId(req.params.id)}).toArray();
+    if (result.length !== 0) {
+        delete result[0].password;
+        res.send(createResponse(true,"",result));
+    } else {
+        res.send(createResponse(false,"User Not Found",null));
+    }
+    
 });
 
 router.post('/register', async (req,res) => {
     const users = await loadUserInformation();
-    await users.insertOne({
+
+    var userIsInDatabase = await users.find({
+        username: req.body.username
+    }).toArray();
+    if (userIsInDatabase.length === 0) {
+        await users.insertOne({
+            username: req.body.username,
+            password: hash(req.body.password)
+        });
+        res.send(createResponse(true,"User Created"));
+    } else {
+        res.send(createResponse(false,"User Already exists!"));
+    }
+    res.status(201).send();
+})
+
+router.post('/login', async (req,res) => {
+    const users = await loadUserInformation();
+    var result = await users.find({
         username: req.body.username,
-        password: hash(req.body.password)
-    });
+        password:hash(req.body.password)
+    }).toArray();
+    if (result.length !== 0) {
+        res.send(createResponse(true,"",{ "_id": result[0]._id , "username": result[0].username }));
+    } else {
+        res.send(createResponse(false,"Couldn't log in",result))
+    }
+    res.status(201).send();
+})
+
+router.post('/updateUserInfo', async (req,res) => {
+    const users = await loadUserInformation();
+
+    const filter = { _id: new mongodb.ObjectId(req.body.id)  };
+    const updateDoc = {
+        $set: req.body.userObject,
+      };
+
+      const options = { upsert: true };
+
+    var result = await users.updateOne(filter, updateDoc, options);
+    res.send(createResponse(true,"User has been updated", result));
     res.status(201).send();
 })
 
