@@ -43,7 +43,8 @@ router.post('/register', async (req,res) => {
     if (userIsInDatabase.length === 0) {
         await users.insertOne({
             username: req.body.username,
-            password: hash(req.body.password)
+            password: hash(req.body.password),
+            email: req.body.email
         });
         res.send(createResponse(true,"User Created"));
     } else {
