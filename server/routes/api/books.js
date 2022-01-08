@@ -23,16 +23,9 @@ router.get('/:id', async (req,res) => {
 //Post a book
 router.post('/', async (req,res) => {
     const mongoDBInstance = await loadUserInformation();
-    await mongoDBInstance.collection.insertOne({
-        Name: req.body.Name,
-        ISBN: req.body.ISBN,
-        Author: req.body.Author,
-        Release: req.body.Release,
-        PublishingHouse: req.body.PublishingHouse,
-        Conditions_ID: req.body.Conditions_ID,
-        Accounts_ID: req.body.Accounts_ID,
-        img: req.body.img,
-    });
+    await mongoDBInstance.collection.insertOne(
+        req.body
+    );
     res.status(201).send();
     mongoDBInstance.client.close();
 })
