@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require("mongodb");
+const { MongoClient,ObjectID } = require("mongodb");
 const { createHash } = require('crypto');
 const { json } = require('body-parser');
 const { create } = require('domain');
@@ -24,7 +24,7 @@ const router = express.Router();
 
 router.get('/:id', async (req,res) => {
     const mongoDBInstance = await loadUserInformation();
-    var result = await mongoDBInstance.collection.find({_id: new mongodb.ObjectId(req.params.id)}).toArray();
+    var result = await mongoDBInstance.collection.find({_id: new ObjectID(req.params.id)}).toArray();
     if (result.length !== 0) {
         delete result[0].password;
         res.send(createResponse(true,"",result));
@@ -73,7 +73,7 @@ router.post('/login', async (req,res) => {
 router.post('/updateUserInfo', async (req,res) => {
     const mongoDBInstance = await loadUserInformation();
 
-    const filter = { _id: new mongodb.ObjectId(req.body.id)  };
+    const filter = { _id: new ObjectID(req.body.id)  };
     const updateDoc = {
         $set: req.body.userObject,
       };
@@ -100,7 +100,7 @@ router.post('/uploadUserPhoto', async (req,res) => {
 
     const mongoDBInstance = await loadUserInformation();
 
-    const filter = { _id: new mongodb.ObjectId(req.body.id)  };
+    const filter = { _id: new ObjectID(req.body.id)  };
     const updateDoc = {
         $set: {
             profilePicture: req.body.fileName

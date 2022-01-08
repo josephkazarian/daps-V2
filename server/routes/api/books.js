@@ -1,5 +1,5 @@
 const express = require('express');
-const { MongoClient } = require("mongodb");
+const { MongoClient, ObjectID  } = require("mongodb");
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.get('/', async (req,res) => {
 router.get('/:id', async (req,res) => {
     const mongoDBInstance = await loadUserInformation();
 
-    res.send(await mongoDBInstance.collection.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
+    res.send(await mongoDBInstance.collection.find({_id: new ObjectID(req.params.id)}).toArray());
     mongoDBInstance.client.close();
 });
 
