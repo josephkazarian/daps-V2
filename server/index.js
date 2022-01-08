@@ -20,6 +20,7 @@ if(process.env.NODE_ENV === 'production') {
     //Static folder
     app.use(express.static(__dirname + '/public'));
     app.get('/userimages/:image', (req, res) => res.sendFile(__dirname + '/userImages/' + req.params.image));
+    app.get('/bookImages/:image', (req, res) => res.sendFile(__dirname + '/bookImages/' + req.params.image));
     //Handle Singe Page application
     app.get(/.*/, (req, res) => res.sendFile(__dirname + '/public/index.html'));
 }

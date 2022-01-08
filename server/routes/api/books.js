@@ -1,27 +1,29 @@
 const express = require('express');
-const mongodb = require('mongodb');
+const { MongoClient } = require("mongodb");
 
 const router = express.Router();
 
 //Get all books
 router.get('/', async (req,res) => {
-    const books = await loadUserInformation();
+    const mongoDBInstance = await loadUserInformation();
 
-    res.send(await books.find({}).toArray());
+    res.send(await mongoDBInstance.collection.find({}).toArray());
+    mongoDBInstance.client.close();
 });
 
 //Get a book
 router.get('/:id', async (req,res) => {
-    const books = await loadUserInformation();
+    const mongoDBInstance = await loadUserInformation();
 
-    res.send(await books.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
+    res.send(await mongoDBInstance.collection.find({_id: new mongodb.ObjectId(req.params.id)}).toArray());
+    mongoDBInstance.client.close();
 });
 
 
 //Post a book
 router.post('/', async (req,res) => {
-    const books = await loadUserInformation();
-    await books.insertOne({
+    const mongoDBInstance = await loadUserInformation();
+    await mongoDBInstance.collection.insertOne({
         Name: req.body.Name,
         ISBN: req.body.ISBN,
         Author: req.body.Author,
@@ -32,15 +34,18 @@ router.post('/', async (req,res) => {
         img: req.body.img,
     });
     res.status(201).send();
+    mongoDBInstance.client.close();
 })
 
 
 
 async function loadUserInformation() {
-    const client = await mongodb.MongoClient.connect('mongodb+srv://daps:dapsdaps123@cluster0.mis4y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {
-        useNewUrlParser: true
-    });
-    return client.db('Cluster0').collection('books');
+    const client = new MongoClient('mongodb+srv://daps:dapsdaps123@cluster0.mis4y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+    const connection = await client.connect();
+    return {
+        client,
+        collection: connection.db('Cluster0').collection('books')
+    }
 }
 
 

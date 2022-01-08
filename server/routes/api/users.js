@@ -1,5 +1,5 @@
 const express = require('express');
-const mongodb = require('mongodb');
+const { MongoClient } = require("mongodb");
 const { createHash } = require('crypto');
 const { json } = require('body-parser');
 const { create } = require('domain');
@@ -23,25 +23,26 @@ function createResponse(hasSucceed,message = "",responseObject = null) {
 const router = express.Router();
 
 router.get('/:id', async (req,res) => {
-    const users = await loadUserInformation();
-    var result = await users.find({_id: new mongodb.ObjectId(req.params.id)}).toArray();
+    const mongoDBInstance = await loadUserInformation();
+    var result = await mongoDBInstance.collection.find({_id: new mongodb.ObjectId(req.params.id)}).toArray();
     if (result.length !== 0) {
         delete result[0].password;
         res.send(createResponse(true,"",result));
     } else {
         res.send(createResponse(false,"User Not Found",null));
     }
+    mongoDBInstance.client.close();
     
 });
 
 router.post('/register', async (req,res) => {
-    const users = await loadUserInformation();
+    const mongoDBInstance = await loadUserInformation();
 
-    var userIsInDatabase = await users.find({
+    var userIsInDatabase = await mongoDBInstance.collection.find({
         username: req.body.username
     }).toArray();
     if (userIsInDatabase.length === 0) {
-        await users.insertOne({
+        await mongoDBInstance.collection.insertOne({
             username: req.body.username,
             password: hash(req.body.password),
             email: req.body.email
@@ -51,11 +52,12 @@ router.post('/register', async (req,res) => {
         res.send(createResponse(false,"User Already exists!"));
     }
     res.status(201).send();
+    mongoDBInstance.client.close();
 })
 
 router.post('/login', async (req,res) => {
-    const users = await loadUserInformation();
-    var result = await users.find({
+    const mongoDBInstance = await loadUserInformation();
+    var result = await mongoDBInstance.collection.find({
         username: req.body.username,
         password:hash(req.body.password)
     }).toArray();
@@ -65,10 +67,11 @@ router.post('/login', async (req,res) => {
         res.send(createResponse(false,"Couldn't log in",result))
     }
     res.status(201).send();
+    mongoDBInstance.client.close();
 })
 
 router.post('/updateUserInfo', async (req,res) => {
-    const users = await loadUserInformation();
+    const mongoDBInstance = await loadUserInformation();
 
     const filter = { _id: new mongodb.ObjectId(req.body.id)  };
     const updateDoc = {
@@ -77,9 +80,10 @@ router.post('/updateUserInfo', async (req,res) => {
 
       const options = { upsert: true };
 
-    var result = await users.updateOne(filter, updateDoc, options);
+    var result = await mongoDBInstance.collection.updateOne(filter, updateDoc, options);
     res.send(createResponse(true,"User has been updated", result));
     res.status(201).send();
+    mongoDBInstance.client.close();
 })
 
 router.post('/uploadUserPhoto', async (req,res) => {
@@ -94,7 +98,7 @@ router.post('/uploadUserPhoto', async (req,res) => {
       }
     });
 
-    const users = await loadUserInformation();
+    const mongoDBInstance = await loadUserInformation();
 
     const filter = { _id: new mongodb.ObjectId(req.body.id)  };
     const updateDoc = {
@@ -105,18 +109,20 @@ router.post('/uploadUserPhoto', async (req,res) => {
 
       const options = { upsert: true };
 
-    var result = await users.updateOne(filter, updateDoc, options);
+    var result = await mongoDBInstance.collection.updateOne(filter, updateDoc, options);
     res.send(createResponse(true,"User has been updated", result));
     res.status(201).send();
+    mongoDBInstance.client.close();
 })
 
 
 async function loadUserInformation() {
-    const client = await mongodb.MongoClient.connect('mongodb+srv://daps:dapsdaps123@cluster0.mis4y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority', {
-        useNewUrlParser: true
-    });
-
-    return client.db('Cluster0').collection('users');
+    const client = new MongoClient('mongodb+srv://daps:dapsdaps123@cluster0.mis4y.mongodb.net/myFirstDatabase?retryWrites=true&w=majority');
+    const connection = await client.connect();
+    return {
+        client,
+        collection: connection.db('Cluster0').collection('users')
+    }
 }
 
 
