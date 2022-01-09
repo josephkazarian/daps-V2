@@ -45,7 +45,7 @@ router.post('/register', async (req,res) => {
         await mongoDBInstance.collection.insertOne({
             username: req.body.username,
             password: hash(req.body.password),
-            email: req.body.email
+            emailAddress: req.body.emailAddress
         });
         res.send(createResponse(true,"User Created"));
     } else {
