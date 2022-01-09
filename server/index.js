@@ -14,6 +14,9 @@ app.use('/api/users', users);
 const books = require('./routes/api/books');
 app.use('/api/books', books);
 
+const orders = require('./routes/api/orders');
+app.use('/api/orders', orders);
+
 // Handle production
 if(process.env.NODE_ENV === 'production') {
 
