@@ -44,7 +44,7 @@ router.post('/uploadBookPhoto', async (req,res) => {
     let a =  req.body.imageBase64;
     let m =  a.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
     let b =  Buffer.from(m[2],'base64');
-    fs.writeFile(`server/bookImages/${req.body.fileName}`,b,function(err){
+    fs.writeFile(`uploads/bookImages/${req.body.fileName}`,b,function(err){
       if(!err){
         console.log("file is created");
       } else {

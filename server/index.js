@@ -1,6 +1,7 @@
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const path = require('path');
 
 const app = express();
 
@@ -17,13 +18,14 @@ app.use('/api/books', books);
 const orders = require('./routes/api/orders');
 app.use('/api/orders', orders);
 
+process.env.NODE_ENV = 'production'
 // Handle production
 if(process.env.NODE_ENV === 'production') {
 
-    //Static folder
+    //Static folder 
     app.use(express.static(__dirname + '/public'));
-    app.get('/userimages/:image', (req, res) => res.sendFile(__dirname + '/userImages/' + req.params.image));
-    app.get('/bookImages/:image', (req, res) => res.sendFile(__dirname + '/bookImages/' + req.params.image));
+    app.get('/userimages/:image', (req, res) => res.sendFile(path.join(__dirname, '../uploads/userImages/' + req.params.image)));
+    app.get('/bookImages/:image', (req, res) => res.sendFile(path.join(__dirname, '../uploads/bookImages/' + req.params.image)));
     //Handle Singe Page application
     app.get(/.*/, (req, res) => res.sendFile(__dirname + '/public/index.html'));
 }
